@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="19455" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19454"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="SlideView" customModule="MediaMetr" customModuleProvider="target"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" id="iN0-l3-epB" customClass="SlideView" customModule="MediaMetr" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="title" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SfE-oV-RHY">
+                    <rect key="frame" x="10" y="65" width="355" height="66"/>
+                    <fontDescription key="fontDescription" name="HelveticaNeue-Bold" family="Helvetica Neue" pointSize="19"/>
+                    <color key="textColor" name="textMainDarck"/>
+                    <nil key="highlightedColor"/>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.zPosition">
+                            <integer key="value" value="5"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </label>
+                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="QDx-f0-rb9" userLabel="ImageView">
+                    <rect key="frame" x="37.5" y="149" width="300" height="287"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="300" id="GSe-np-ytG"/>
+                        <constraint firstAttribute="height" relation="lessThanOrEqual" priority="997" constant="300" id="kT3-fV-IXy"/>
+                    </constraints>
+                </imageView>
+                <textView clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" usesAttributedText="YES" translatesAutoresizingMaskIntoConstraints="NO" id="M3Z-3U-9Q6" userLabel="Description">
+                    <rect key="frame" x="13" y="436" width="349" height="231"/>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <attributedString key="attributedText">
+                        <fragment content="Use this technique to make your slides, create your app, in a simple and effective way ">
+                            <attributes>
+                                <color key="NSColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <font key="NSFont" metaFont="system" size="15"/>
+                                <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural" lineSpacing="4" tighteningFactorForTruncation="0.0" allowsDefaultTighteningForTruncation="NO"/>
+                            </attributes>
+                        </fragment>
+                    </attributedString>
+                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                </textView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="vUN-kp-3ea"/>
+            <color key="backgroundColor" name="backgroundMain"/>
+            <constraints>
+                <constraint firstItem="SfE-oV-RHY" firstAttribute="top" secondItem="vUN-kp-3ea" secondAttribute="top" constant="65" id="2UK-db-1R0"/>
+                <constraint firstItem="QDx-f0-rb9" firstAttribute="height" secondItem="iN0-l3-epB" secondAttribute="height" multiplier="0.43" id="4qU-Zd-BNj"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="M3Z-3U-9Q6" secondAttribute="trailing" constant="13" id="Ci0-Fc-rci"/>
+                <constraint firstItem="M3Z-3U-9Q6" firstAttribute="bottom" secondItem="vUN-kp-3ea" secondAttribute="bottom" id="H7G-0e-zcj"/>
+                <constraint firstItem="QDx-f0-rb9" firstAttribute="centerY" secondItem="vUN-kp-3ea" secondAttribute="centerY" constant="-41" id="K5S-OE-beE"/>
+                <constraint firstItem="M3Z-3U-9Q6" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="13" id="LDY-Eu-Gx7"/>
+                <constraint firstItem="QDx-f0-rb9" firstAttribute="centerX" secondItem="vUN-kp-3ea" secondAttribute="centerX" id="Lkt-QY-WIP"/>
+                <constraint firstItem="M3Z-3U-9Q6" firstAttribute="top" secondItem="QDx-f0-rb9" secondAttribute="bottom" id="SqW-wj-nYH"/>
+                <constraint firstItem="QDx-f0-rb9" firstAttribute="top" relation="lessThanOrEqual" secondItem="SfE-oV-RHY" secondAttribute="bottom" constant="18" id="b0D-l5-gQA"/>
+                <constraint firstItem="vUN-kp-3ea" firstAttribute="trailing" secondItem="SfE-oV-RHY" secondAttribute="trailing" constant="10" id="bS4-2P-peW"/>
+                <constraint firstItem="SfE-oV-RHY" firstAttribute="leading" secondItem="vUN-kp-3ea" secondAttribute="leading" constant="10" id="iF9-we-D1Q"/>
+            </constraints>
+            <variation key="heightClass=regular-widthClass=compact">
+                <mask key="constraints">
+                    <include reference="2UK-db-1R0"/>
+                    <include reference="K5S-OE-beE"/>
+                </mask>
+            </variation>
+            <connections>
+                <outlet property="imageView" destination="QDx-f0-rb9" id="byA-km-a96"/>
+                <outlet property="labelDesc" destination="M3Z-3U-9Q6" id="aYp-tQ-3hO"/>
+                <outlet property="lableTitle" destination="SfE-oV-RHY" id="wgB-dm-aja"/>
+            </connections>
+            <point key="canvasLocation" x="133.59999999999999" y="131.78410794602701"/>
+        </view>
+    </objects>
+    <resources>
+        <namedColor name="backgroundMain">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="textMainDarck">
+            <color red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>
