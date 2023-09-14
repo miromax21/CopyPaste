@@ -2,45 +2,39 @@
 //  KeyboardListener.swift
 //  CopyPaste
 //
-//  Created by Maksim Mironov on 06.12.2022.
+//  Created by Maksim Mironov on 03.11.2022.
 //
 
 import UIKit
-
-internal final class KeyboardListener {
-
+import Combine
+public final class KeyboardListener {
+  
   fileprivate(set) var keyboardFrame = CGRect.zero
   fileprivate var isListening = false
+  
+  @Published public var keyboardHeihgt: CGRect = .zero
 
-  var keyboardHeihgt: Dynamic<CGRect> = Dynamic(CGRect.zero)
-
-  init() {
+  public init(){
     startListeningToKeyboard()
   }
-
   deinit {
     stopListeningToKeyboard()
   }
 }
 
-// MARK: - Notifications
+//MARK: - Notifications
 extension KeyboardListener {
-
+  
   var targetView: UIViewController? {
-    var window: UIWindow??
-    if #available(iOS 13, *) {
-      window = (UIApplication.shared.connectedScenes.first?.delegate as? UIWindowSceneDelegate)?.window
-    } else {
-      window = (UIApplication.shared.delegate)?.window
-    }
-    return window??.rootViewController
+    (UIApplication.shared.connectedScenes.first!.delegate as? UIWindowSceneDelegate)?.window??.rootViewController
+   // #available(iOS 13, *) else (UIApplication.shared.delegate as! AppDelegate).window?.rootViewController
   }
-
-  func startListeningToKeyboard() {
+  
+  public func startListeningToKeyboard() {
     if isListening {
       return
     }
-
+    
     isListening = true
     [
       UIResponder.keyboardWillShowNotification: #selector(keyboardWillShow),
@@ -50,28 +44,29 @@ extension KeyboardListener {
       NotificationCenter.default.addObserver(self, selector: $0.value, name: $0.key, object: nil)
     }
   }
-
-  func stopListeningToKeyboard() {
+  
+  public func stopListeningToKeyboard() {
     NotificationCenter.default.removeObserver(self)
   }
-
+  
   @objc
   fileprivate func keyboardWillShow(_ notification: Notification) {
-    keyboardHeihgt.value = keyboardFrame(fromNotification: notification)
+    keyboardHeihgt = keyboardFrame(fromNotification: notification)
   }
-
+  
   @objc
   fileprivate func keyboardWillHide(_ notification: Notification) {
-    keyboardHeihgt.value = CGRect.zero
+    keyboardHeihgt = CGRect.zero
   }
-
+  
   @objc
   fileprivate func appMovedToBackground() {
     targetView?.view.endEditing(true)
   }
-
+  
   fileprivate func keyboardFrame(fromNotification notification: Notification) -> CGRect {
     let value = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
     return value?.cgRectValue ?? CGRect.zero
   }
+  
 }

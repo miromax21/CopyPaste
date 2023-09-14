@@ -2,7 +2,7 @@
 //  DraggableToCloseViewProtocol.swift
 //  CopyPaste
 //
-//  Created by Maksim Mironov on 12.10.2022.
+//  Created by Maksim Mironov on 29.09.2022.
 //
 
 import UIKit
@@ -30,5 +30,26 @@ extension DraggableToCloseView {
         }
       }
     }
+  }
+
+  func addSwipeControl(into: UIView) -> UIView {
+    let closeSwipeView: UIView = {
+      let view = UIView()
+      let swipeView = UIView()
+      swipeView.backgroundColor = AppColors.black.color(alpha: 36)
+   //   swipeView.alpha = 0.6
+      swipeView.layer.cornerRadius = 2.5
+      view.addSubview(swipeView)
+      view.addConstraintsWithFormat("H:[v0(134)]", views: swipeView)
+      view.addConstraintsWithFormat("V:|-5-[v0(5)]", views: swipeView)
+      swipeView.layer.cornerRadius = 2
+      swipeView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+      return view
+    }()
+    into.addSubview(closeSwipeView)
+    into.addConstraintsWithFormat("V:[v0(40)]", views: closeSwipeView)
+    into.addConstraintsWithFormat("H:[v0(60)]", views: closeSwipeView)
+    closeSwipeView.centerXAnchor.constraint(equalTo: into.centerXAnchor).isActive = true
+    return closeSwipeView
   }
 }

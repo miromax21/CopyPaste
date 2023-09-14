@@ -8,7 +8,7 @@
 import Foundation
 import CoreLocation
 import UIKit
-final class LocationService: NSObject {
+class LocationService: NSObject {
 
   static var shared = LocationService()
   var alertTimer: Timer?
@@ -179,4 +179,43 @@ extension LocationService: CLLocationManagerDelegate {
     alertTimer = nil
     setAccess(has: false)
   }
+}
+
+
+final class LocationBecons: LocationService {
+  
+  var findBeacons: (([CLBeacon])-> ())?
+  
+  private let locationManager = CLLocationManager()
+    func startScanningCLBeacon() {
+      let beacons = getCLBeaconConstraints()
+      beacons.forEach{
+        self.locationManager.startRangingBeacons(satisfying: $0)
+      }
+    }
+    
+    func stopScanningCLBeacon(){
+      let beacons = getCLBeaconConstraints()
+      beacons.forEach{
+        self.locationManager.stopRangingBeacons(satisfying: $0)
+      }
+    }
+    
+    private func getCLBeaconConstraints() -> [CLBeaconIdentityConstraint] {
+      let ids: [String] = ["2F234454-CF6D-4A0F-ADF2-F4911BA9FFA0"]
+      return ids.compactMap {
+        if let uid = UUID(uuidString: $0){
+          return CLBeaconIdentityConstraint(uuid: uid)
+        }
+        return nil
+      }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
+      if beacons.count > 0 {
+        findBeacons?(beacons)
+      } else {
+        print(" not found")
+      }
+    }
 }

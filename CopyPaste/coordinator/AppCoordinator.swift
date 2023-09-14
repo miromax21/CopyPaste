@@ -2,29 +2,28 @@
 //  AppCoordinator.swift
 //  CopyPaste
 //
-//  Created by Sergey Zhidkov on 06.12.2022.
+//  Created by Maksim Mironov on 29.09.2022.
 //
 
 import UIKit
-
 final class AppCoordinator {
 
-  var navigationController: AppNavigationController!
-  var coordinatorKey: AppCoordinatorEnum!
-
-  var initialCoordinator: BaseCoordinator {
-    let coordinator: AppCoordinatorEnum = true ? .registration : .main(present: nil)
-    return getCoordinator(coordinator: coordinator)
-  }
-
+  private(set) var navigationController: AppNavigationController!
+  private(set) var coordinatorKey: AppCoordinatorEnum!
+  var app: App!
+  var initialCoordinator: AppCoordinatorEnum = .main(present: nil)
+  
   init(navigationController: AppNavigationController) {
     self.navigationController = AppNavigationController()
-    initialCoordinator.appCoordinator = self
-    initialCoordinator.appNavigationController = navigationController
-    start(with: initialCoordinator, animate: false)
+  }
+  func configure() {
+ //   start(with: initialCoordinator, animate: false)
   }
 
   func next(coordinator: AppCoordinatorEnum, animate: Bool = true) {
+    getCoordinator(coordinator: coordinator).start()
+  }
+  func start(with coordinator: AppCoordinatorEnum) {
     getCoordinator(coordinator: coordinator).start()
   }
 
@@ -33,29 +32,27 @@ final class AppCoordinator {
     coordinator.start()
   }
 
-  func start(relativByMain view: [UIViewController]) {
-
-    guard String(describing: view.self) != String(describing: navigationController.currentView.self) else {
-      return
+  
+  func setTheme(style: UIUserInterfaceStyle){
+    navigationController.viewControllers.forEach{
+      $0.overrideUserInterfaceStyle = style
     }
-//    if navigationController.mainScreen == nil {
-//      (initialCoordinator as? MainCoordinator)?.start()
-//    }
-    var views = view
-    views.insert(navigationController.mainScreen!, at: 0)
-    navigationController.start(with: views, animate: false)
+  }
+
+  func logOut() {
+    coordinatorKey = nil
+    app.needAuthorization = true
   }
 
   fileprivate func getCoordinator(coordinator: AppCoordinatorEnum) -> BaseCoordinator {
     coordinatorKey = coordinator
     let nextCoordinator = coordinator.next
-    navigationController.navigationBar.isHidden = !coordinator.showNavBar
     prepare(coordinator: nextCoordinator)
     return nextCoordinator
   }
 
   private func prepare(coordinator: BaseCoordinator) {
     coordinator.appCoordinator = self
-    coordinator.appNavigationController = navigationController
+    coordinator.appCoordinator.navigationController = navigationController
   }
 }

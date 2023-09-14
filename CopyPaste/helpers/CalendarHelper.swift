@@ -2,12 +2,16 @@
 //  CalendarHelper.swift
 //  CopyPaste
 //
-//  Created by Sergey Zhidkov on 06.12.2022.
+//  Created by Maksim Mironov on 30.11.2022.
 //
 
 import Foundation
-class CalendarHelper {
-  let calendar = Calendar.current
+final class CalendarHelper {
+  private var calendar = Calendar.current
+
+  init() {
+    calendar.timeZone = TimeZone.init(identifier: "ru_RU") ?? .current
+  }
 
   func plusMonth(date: Date) -> Date {
     return calendar.date(byAdding: .month, value: 1, to: date)!
@@ -18,11 +22,15 @@ class CalendarHelper {
   }
 
   func monthString(date: Date) -> String {
-    return string(date: date, with: "LLLL")
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "LLLL"
+    return dateFormatter.string(from: date)
   }
 
   func yearString(date: Date) -> String {
-    return string(date: date, with: "yyyy")
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy"
+    return dateFormatter.string(from: date)
   }
 
   func daysInMonth(date: Date) -> Int {
@@ -36,6 +44,7 @@ class CalendarHelper {
   }
 
   func firstOfMonth(date: Date) -> Date {
+
     let components = calendar.dateComponents([.year, .month], from: date)
     return calendar.date(from: components)!
   }
@@ -46,14 +55,16 @@ class CalendarHelper {
   }
 
   func weekdayNameFromWeekdayNumber(weekdayNumber: Int) -> String {
-    let weekdaySymbols = calendar.shortWeekdaySymbols
-    let index = (weekdayNumber + calendar.firstWeekday - 1) % 7
-    return weekdaySymbols[index]
+      let weekdaySymbols = calendar.shortWeekdaySymbols
+      let index = (weekdayNumber + calendar.firstWeekday - 1) % 7
+      return weekdaySymbols[index]
   }
 
-  private func string(date: Date, with format: String = "yyyy-MM-dd HH:mm:ss") -> String {
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = format
-    return dateFormatter.string(from: date)
+  func weekdaysFromLast(ofMonth month: Int, year: Int) -> Int {
+    let comps = DateComponents(calendar: calendar, year: year, month: month)
+    let date = calendar.date(from: comps)!
+    let interval = Calendar.current.dateInterval(of: .month, for: date)
+    let lastDays = (calendar.component(.weekday, from: interval!.end) - calendar.firstWeekday + 7) % 7
+    return lastDays
   }
 }

@@ -15,13 +15,13 @@ final class SliderViewController: UIViewController, PresentableViewController {
   private var curentIndex: Int = 0 {
     willSet {
       let isLast = newValue == slides.count - 1
-      button.configure(view: view, type: isLast ? .button : .icon)
+    //  button.configure(view: view, type: isLast ? .button : .icon)
       button.contentHorizontalAlignment = .center
       pageControl.currentPage = newValue
       pageControl.alpha = isLast ? 0 : 1
     }
   }
-  private var button = CustomButtonClosable()
+  private var button = CustomButton()
   private var slides: [SlideView] = []
   private var scale = 1
 
@@ -44,7 +44,7 @@ final class SliderViewController: UIViewController, PresentableViewController {
     setupSlideScrollView(slides: slides)
 
     view.bringSubviewToFront(pageControl)
-    button.configure(iconparent: self.view, title: NSLocalizedString("close", comment: ""))
+    // button.configure(iconparent: self.view, title: NSLocalizedString("close", comment: ""))
 
     button.onClick = { [weak self] in
       guard let self = self else {return}

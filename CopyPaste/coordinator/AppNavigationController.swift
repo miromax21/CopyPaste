@@ -2,26 +2,18 @@
 //  AppNavigationController.swift
 //  CopyPaste
 //
-//  Created by Sergey Zhidkov on 06.12.2022.
+//  Created by Maksim Mironov on 29.09.2022.
 //
 
 import UIKit
 protocol ShowAlert {
-  func showAlert(alertVC: UIAlertController)
-  func showAlert(alert: AlertService.AlertType, options: ToatOptions?)
-  func updateUi(next: UpdateUiEnum)
   func next(viewController: UIViewController, animate: Bool)
-}
-
-enum UpdateUiEnum {}
-protocol UpdateUI {
-  func updateUI(next: UpdateUiEnum)
 }
 final class AppNavigationController: UINavigationController, ShowAlert {
 
-  var presentedView: PresentableViewController?
+  // private(set) var presentedView: PresentableViewController?
   var mainScreen: UIViewController? {
-    return viewControllers.first // (where: {$0 is UIViewController}) as? UIViewController
+    return viewControllers.first
   }
 
   var currentView: UIViewController? {
@@ -30,42 +22,27 @@ final class AppNavigationController: UINavigationController, ShowAlert {
 
   lazy var transitionAnimation: CATransition = {
     let transition = CATransition()
-    transition.duration = 0.3
-    transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+    transition.duration = 5.3
+    transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
     transition.type = .fade
     transition.subtype = .fromBottom
     return transition
-  }()
-
-  lazy var alertService: AlertService? = {
-     return AlertService()
   }()
 
   override func popViewController(animated: Bool) -> UIViewController? {
     return pop(transition: nil)?.last
   }
 
-  func addCustomBottomLine(color: UIColor, height: Double) {
-    navigationBar.setValue(true, forKey: "hidesShadow")
-    let lineView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: height))
-    lineView.backgroundColor = color
-    navigationBar.addSubview(lineView)
-    lineView.translatesAutoresizingMaskIntoConstraints = false
-    lineView.widthAnchor.constraint(equalTo: navigationBar.widthAnchor).isActive = true
-    lineView.heightAnchor.constraint(equalToConstant: CGFloat(height)).isActive = true
-    lineView.centerXAnchor.constraint(equalTo: navigationBar.centerXAnchor).isActive = true
-    lineView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor).isActive = true
-  }
-
   func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer!) -> Bool {
     return false
   }
 
-  func start(with viewController: [UIViewController], animate: Bool = true) {
-    viewControllers = viewController
+  func start(with viewController: UIViewController, animate: Bool = true) {
     if animate {
       view.layer.add(transitionAnimation, forKey: nil)
+      pushViewController(viewController, animated: true)
     }
+    viewControllers = [viewController]
     configure()
   }
 
@@ -83,10 +60,16 @@ final class AppNavigationController: UINavigationController, ShowAlert {
     removeBackGesture()
   }
 
-  func presentViewControllerModaly(vc: UIViewController, presentCompletion: (() -> Void)? = nil) {
-    currentView?.present(vc, animated: true, completion: {
-      presentCompletion?()
-    })
+  func presentViewControllerModaly(
+    next: CustomPresentable,
+    presentCompletion: (() -> Void)? = nil,
+    interactiveDismissalType: InteractiveDismissalType = .standard(useSwipeForDispose: true)
+  ) {
+    currentView?.present(
+      next,
+      interactiveDismissalType: interactiveDismissalType,
+      completion: presentCompletion
+    )
   }
 
   func pop(transition: UIView.AnimationTransition? = .flipFromRight) -> [UIViewController]? {
@@ -97,71 +80,28 @@ final class AppNavigationController: UINavigationController, ShowAlert {
     return popToRootViewController(animated: false)
   }
 
-  func updateUi(next: UpdateUiEnum) {
-    guard DeviceUtilsService.shared.screenIsAvalable.value == true else { return }
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self else {return}
-      switch next {
-      default: (self.currentView as? UpdateUI)?.updateUI(next: next)
-      }
-    }
-  }
-
-  func showAlert(alertVC: UIAlertController) {
-    guard DeviceUtilsService.shared.screenIsAvalable.value else { return }
-    let alert = alertVC
-    if presentedView != nil {
-      presentedView!.present(alert, animated: true)
-      return
-    }
-    currentView?.present(alert, animated: true, completion: nil)
-  }
-
-  func showAlert(alert: AlertService.AlertType, options: ToatOptions? = nil) {
-    guard DeviceUtilsService.shared.screenIsAvalable.value else { return }
-    alertService?.next(alert: alert, options: options)
-  }
-
   func present(
-    _ view: PresentableViewController,
-    completion: ((_ callBack: Any?) -> Void)? = nil,
-    presentCompletion: (() -> Void)? = nil
-  ) {
-    presentedView = view
-    presentedView?.complete = completion
-    currentView?.present(view, animated: true, completion: presentCompletion)
-  }
-
-  func present(
-    _ view: PresentableViewController,
-    presentSize: PresentSize = .full,
+    _ view: CustomPresentable,
     completion: ((_ callBack: Any?) -> Void)? = nil
   ) {
-    if presentedView != nil && presentedView! == view {
-      return
-    }
-    presentedView = view
-    presentedView?.complete = { [weak self] callBack in
-      self?.presentedView?.dismiss(animated: true, completion: {
-        self?.presentedView = nil
-        completion?(callBack)
-      })
-    }
-    presentedView?.transitioningDelegate = currentView
-    presentedView?.modalPresentationStyle = .custom
-    presentedView?.presentSize = presentSize
-    presentViewControllerModaly(vc: presentedView!)
-
+    let presentedView = view
+    presentedView.completion = completion
+    presentViewControllerModaly(next: presentedView)
   }
 
   func present(
-    _ vc: UIViewController,
+    _ next: UIViewController,
     style: UIModalPresentationStyle = .custom,
     presentCompletion: (() -> Void)? = nil
   ) {
-    vc.transitioningDelegate = currentView
-    vc.modalPresentationStyle = style
-    currentView?.present(vc, animated: true, completion: presentCompletion)
+    next.transitioningDelegate = currentView
+    next.modalPresentationStyle = style
+    currentView?.present(next, animated: true, completion: presentCompletion)
+  }
+  
+  
+  func dismissppUp(){
+    currentView?.dismiss(animated: true)
   }
 
   private func removeBackGesture() {
@@ -171,27 +111,22 @@ final class AppNavigationController: UINavigationController, ShowAlert {
     }
   }
 
-  func configure() {
-    navigationBar.topItem?.title = ""
-    addCustomBottomLine(color: AppColors.alertInfo.color, height: 1.0)
-    addCustomizedBackBtn()
-    UINavigationBar.appearance().topItem?.title = ""
+  private  func addCustomBottomLine(color: UIColor, height: Double) {
+    navigationBar.setValue(true, forKey: "hidesShadow")
+    let lineView = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: height))
+    lineView.backgroundColor = color
+    navigationBar.addSubview(lineView)
+    lineView.translatesAutoresizingMaskIntoConstraints = false
+    lineView.widthAnchor.constraint(equalTo: navigationBar.widthAnchor).isActive = true
+    lineView.heightAnchor.constraint(equalToConstant: CGFloat(height)).isActive = true
+    lineView.centerXAnchor.constraint(equalTo: navigationBar.centerXAnchor).isActive = true
+    lineView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor).isActive = true
+  }
 
-    UIBarButtonItem.appearance().tintColor = AppColors.alertInfo.color
 
-    let attr: [NSAttributedString.Key: Any] = [
-      .foregroundColor: AppColors.alertInfo.color,
-      .font: FontsEnum.base.getFont(size: 22.0),
-      .backgroundColor: UIColor.clear
-    ]
-    UINavigationBar.appearance().titleTextAttributes = attr
+  private func configure() {
 
   }
 
-  private func addCustomizedBackBtn() {
-    navigationBar.backIndicatorImage =  IconTypeEnum.back.getIcon(width: 16.0, height: 16.0)
-    navigationBar.backIndicatorTransitionMaskImage = IconTypeEnum.back.icon
-    currentView?.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-    currentView?.navigationItem.backBarButtonItem = nil
-  }
 }
+

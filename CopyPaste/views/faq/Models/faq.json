@@ -1,0 +1,70 @@
+[
+  {
+    "title": "General Information",
+    "items": [
+      {
+        "type": "text",
+        "value": "  This study aims to measure the mobile Internet audience. \n\n   As part of the research project, each participant installs a mobile application on their smartphone that captures information about their media consumption in popular mobile applications and web resources."
+      }
+    ],
+    
+  },
+  {
+    "title": "How can I be sure the app is working properly?",
+    "items": [
+      {
+        "type": "text",
+        "value": "  For correct app operation, you should allow it to run in a background mode.\n\n   The daily stat of the application running will be displayed in the \"Statistics\" section and is updated with a delay of approximately 3-4 hours."
+      },
+      {
+        "type": "image",
+        "value": "http://tele.fm/mediascope_om/faq_ios_img3.jpg",
+        "options":
+            {
+                "ratio": "1.08",
+                "localImage": "faq_statistic",
+                "darkValue": "http://tele.fm/mediascope_om/faq_ios_img3_dark.jpg"
+            }
+      }
+    ],
+    
+  },
+  {
+    "title": "What if the battery on my phone runs out or if I close the app?",
+    "items": [
+      {
+        "type": "text",
+        "value": "  For the correct accrual of activity points, the application must run in the background mode for at least 16 hours a day, mostly during the daytime."
+      }
+    ],
+    
+  },
+  {
+    "title": "Does the app use a lot of battery power?",
+    "items": [
+      {
+        "type": "text",
+        "value": "  We made our app in such a way that it does not affect the way you are used to use your smartphone."
+      }
+    ],
+    
+  },
+  {
+    "title": "The app does't work or I have encountered a technical difficulties",
+    "items": [
+      {
+        "type": "text",
+        "value": "  If you have any problems with the app, please email us at info@cifrasoft.com and describe your problem. \n\n We will try to help you as soon as possible."
+      }
+    ],
+  },
+  {
+      "title": "License Agreement",
+      "items": [
+        {
+          "type": "text",
+          "value": "    Some of the images used were obtained from https://icons8.com"
+        }
+      ]
+  }
+]

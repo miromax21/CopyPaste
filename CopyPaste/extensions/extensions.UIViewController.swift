@@ -36,8 +36,34 @@ extension UIViewController: UIViewControllerTransitioningDelegate {
   ) -> UIPresentationController? {
     PresentationController(presentedViewController: presented, presenting: presenting)
   }
+  
+  enum InteractiveDismissalType {
+    case none
+    case standard(useSwipeForDispose: Bool)
+  }
+  
+  func present(
+    _ viewController: CustomPresentable,
+    interactiveDismissalType: InteractiveDismissalType,
+    completion: (() -> Void)? = nil
+  ) {
+    let interactionController: InteractionControlling?
+    switch interactiveDismissalType {
+      case .none:
+        interactionController = nil
+      case .standard(let useSwipe) :
+        interactionController = StandardInteractionController(viewController: viewController, useSwipe: useSwipe)
+    }
+    
+    let transitionManager = ModalTransitionManager(interactionController: interactionController)
+    viewController.transitionManager = transitionManager
+    viewController.transitioningDelegate = transitionManager
+    viewController.modalPresentationStyle = .custom
+    present(viewController, animated: true, completion: completion)
+  }
 }
 
 protocol DisposableViewController {
   func removeReference()
 }
+

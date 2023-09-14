@@ -6,12 +6,6 @@
 //
 
 import UIKit
-enum PresentSize: Int {
-  case full = 95, large = 70, middle = 50, doubleMin2 = 40, doubleMin = 30, min = 15, min2 = 20
-  var size: Int {
-    return self.rawValue
-  }
-}
 protocol PresentableViewController: UIViewController {
   var complete: ((_ callBack: Any?) -> Void)? {get set}
   var presentSize: PresentSize? {get set}
@@ -66,7 +60,6 @@ final class PresentationController: UIPresentationController {
     guard presentSize != .full else {
       return
     }
-    presentedView!.roundCorners([.topLeft, .topRight], radius: 22)
   }
 
   override func containerViewDidLayoutSubviews() {

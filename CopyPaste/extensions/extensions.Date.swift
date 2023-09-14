@@ -52,4 +52,8 @@ extension Date {
       let days = Calendar.current.dateComponents([.day], from: interval.start, to: interval.end).day
     { return days } else { return -1 }
   }
+  
+  func get(_ component: Calendar.Component, calendar: Calendar = Calendar.current) -> Int {
+      return calendar.component(component, from: self)
+  }
 }

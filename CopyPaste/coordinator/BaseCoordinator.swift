@@ -1,17 +1,12 @@
-//
-//  BaseCoordinator.swift
-//  CopyPaste
-//
-//  Created by Sergey Zhidkov on 06.12.2022.
-//
-
 import UIKit
 
-protocol Coordinator: AnyObject {
+import Foundation
+
+protocol Coordinator {
   func start()
 }
 
-class BaseCoordinator: Coordinator {
+class BaseCoordinator: NSObject, Coordinator {
   var type: AppCoordinatorEnum!
   unowned var appCoordinator: AppCoordinator!
   unowned var appNavigationController: AppNavigationController!
@@ -25,26 +20,10 @@ class BaseCoordinator: Coordinator {
 class PresentableCoordinator: BaseCoordinator {
   var view: PresentableViewController!
 }
-enum AppCoordinatorEnum {
-  case registration
-  case main(present: UIViewController?)
 
-  var value: String? {
-    return String(describing: self).components(separatedBy: "(").first
-  }
-  var next: BaseCoordinator {
-    return BaseCoordinator()
-  }
-
-  var animationDirection: CATransitionSubtype? {
-    switch self {
-    default:    return nil
-    }
-  }
-  var showNavBar: Bool {
-    switch self {
-    case .registration: return false
-    default:    return true
-    }
+class BaseViewModel {
+  var coordinator: BaseCoordinator!
+  init(coordinator: BaseCoordinator) {
+    self.coordinator = coordinator
   }
 }
