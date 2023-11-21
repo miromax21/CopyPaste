@@ -146,6 +146,7 @@
 		CDC6DC902B0C8E2000B9F501 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC6DC8D2B0C8E2000B9F501 /* Provider.swift */; };
 		CDC6DC912B0C8E2000B9F501 /* TargetType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC6DC8E2B0C8E2000B9F501 /* TargetType.swift */; };
 		CDC6DC932B0C8E2A00B9F501 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC6DC922B0C8E2A00B9F501 /* Api.swift */; };
+		CDC6DC952B0C92C400B9F501 /* GeneratorUUIDbyCRC.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC6DC942B0C92C400B9F501 /* GeneratorUUIDbyCRC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -295,6 +296,7 @@
 		CDC6DC8D2B0C8E2000B9F501 /* Provider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		CDC6DC8E2B0C8E2000B9F501 /* TargetType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TargetType.swift; sourceTree = "<group>"; };
 		CDC6DC922B0C8E2A00B9F501 /* Api.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Api.swift; sourceTree = "<group>"; };
+		CDC6DC942B0C92C400B9F501 /* GeneratorUUIDbyCRC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratorUUIDbyCRC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -312,6 +314,7 @@
 			isa = PBXGroup;
 			children = (
 				CD0A82E1293F32CE0056B786 /* CalendarHelper.swift */,
+				CDC6DC942B0C92C400B9F501 /* GeneratorUUIDbyCRC.swift */,
 				CD758C7528F6F3C600339A8C /* Utils.swift */,
 			);
 			path = helpers;
@@ -1010,6 +1013,7 @@
 				CD758C3528F6ECDF00339A8C /* CopyPasteApp.swift in Sources */,
 				CD86C5FB29AE33D400D819E8 /* FaqDataSource.swift in Sources */,
 				CDC6DC902B0C8E2000B9F501 /* Provider.swift in Sources */,
+				CDC6DC952B0C92C400B9F501 /* GeneratorUUIDbyCRC.swift in Sources */,
 				CD61CE762A948F6E001EA45D /* Copying.swift in Sources */,
 				CD86C5B729AE27A600D819E8 /* HeaderSupplementaryView.swift in Sources */,
 				CD758C4728F6EDB800339A8C /* AlertService.swift in Sources */,
