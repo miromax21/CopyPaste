@@ -18,57 +18,71 @@ struct StatisticPickerModel{
 class StatisticTopView: UIView {
   var model: StatisticModel!
   var emit: ((StatisticPickerModel) -> Void)?
-  
+
   private var pendingRequestWorkItem: DispatchWorkItem?
   private lazy var monthPickerView: UIPickerView! = {
     monthPickerView = UIPickerView()
     monthPickerView.subviews.last?.backgroundColor = .clear
     return monthPickerView
   }()
-  
+  var nodateLabel: UILabel = {
+    let nodateLabel = UILabel()
+    nodateLabel.font = UIFont.boldSystemFont(ofSize: 16.0)
+    nodateLabel.text = "Loc(Loc.Global.date_no_data)"
+    nodateLabel.isHidden = true
+    return nodateLabel
+  }()
+
   private lazy var nextMonth: CustomButton! = {
     let settings = ControllSettings()
-    settings.subviewAngle = 270
-    let button = ViewBuilder.init(icon: .icon(name: .arrow, settings: settings)).makeButton()
+    let builder = ViewBuilder.init(icon: .icon(name: .arrow, settings: settings))
+    builder.settings.subviews?.subviewAngle = 270
+    let button = builder.makeButton()
     button.tag = -1
     return button
   }()
-  
+
   private lazy var previouseMonth: CustomButton! = {
     let settings = ControllSettings()
-    settings.subviewAngle = 90
-    let button = ViewBuilder.init(icon: .icon(name: .arrow, settings: settings)).makeButton()
+    let builder = ViewBuilder.init(icon: .icon(name: .arrow, settings: settings))
+    builder.settings.subviews?.subviewAngle = 90
+    let button = builder.makeButton()
     button.tag = 1
     return button
   }()
-  
-  init(){
+
+  init() {
     super.init(frame: .zero)
     monthPickerView.delegate = self
     monthPickerView.dataSource = self
     setupViews()
     configureViews()
   }
+
   override func willMove(toSuperview newSuperview: UIView?) {
     super.willMove(toSuperview: newSuperview)
     monthPickerView.selectRow(model.dateModel.selected.month, inComponent: 0, animated: false)
+    isUserInteractionEnabled = !model.isEmpty
+    nodateLabel.isHidden = !model.isEmpty
+    [previouseMonth, nextMonth, monthPickerView].forEach {
+      $0?.alpha = model.isEmpty ? 0 : 1
+    }
   }
 
   override func didMoveToSuperview() {
     super.didMoveToSuperview()
     setButtonState()
   }
- 
-  
+
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   func setButtonState() {
-//    previouseMonth.controlState = model.selected.month == 0 ? .active : .disabled
-//    nextMonth.controlState = model.selected.month == model.months.count - 1 ? .active : .disabled
+    //    previouseMonth.controlState = model.selected.month == 0 ? .active : .disabled
+    //    nextMonth.controlState = model.selected.month == model.months.count - 1 ? .active : .disabled
   }
-  
+
   @objc private func changeMonth(sender: UIButton) {
     let selectedMonth = model.dateModel.selected.month + sender.tag
     let monthes =  model.statisticsMmonths[model.dateModel.selected.year].value
@@ -88,12 +102,12 @@ class StatisticTopView: UIView {
     monthPickerView.selectRow(selected.month, inComponent: 0, animated: true)
     showNext()
   }
-  
-  func showNext(){
+
+  func showNext() {
     pendingRequestWorkItem?.cancel()
     let requestWorkItem = DispatchWorkItem { [weak self] in
-       guard let self = self else {return}
-       self.emit?(self.model.dateModel!)
+      guard let self = self else {return}
+      self.emit?(self.model.dateModel!)
     }
     pendingRequestWorkItem = requestWorkItem
     DispatchQueue.global(qos: .background).asyncAfter(
@@ -103,23 +117,10 @@ class StatisticTopView: UIView {
   }
 }
 
+// MARK: - controll state
 private extension StatisticTopView {
-  
-  func setupViews(){
-    let daysView = makeWeekDays()
-    addSubview(daysView)
-    addSubview(monthPickerView)
-    [previouseMonth, nextMonth].forEach{
-      addSubview($0)
-    }
-    addConstraintsWithFormat("H:|[v0]|", views: daysView)
-    addConstraintsWithFormat("H:|[v0(>=130,<=240)]-(>=0)-[v1(40)]-[v2(40)]|", options: [.alignAllCenterY], views: monthPickerView, previouseMonth, nextMonth)
-    addConstraintsWithFormat("V:|[v0]-[v1]|", views: monthPickerView, daysView)
-    monthPickerView.reloadAllComponents()
-  }
-  
-  func configureViews(){
-    
+
+  func configureViews() {
     previouseMonth.addTarget(self, action: #selector(changeMonth), for: .touchDown)
     nextMonth.addTarget(self, action: #selector(changeMonth), for: .touchDown)
   }
@@ -129,8 +130,8 @@ private extension StatisticTopView {
     calendar.locale = .autoupdatingCurrent
     let days = calendar.shortWeekdaySymbols
     let monthView = UIView()
-    let str = (0...days.count-1).map{"[v\($0)(==v0)]"}.joined(separator: "-")
-    let daysViews = days.map{
+    let str = (0...days.count-1).map {"[v\($0)(==v0)]"}.joined(separator: "-")
+    let daysViews = days.map {
       let lbl = UILabel()
       lbl.text = $0
       lbl.textAlignment = .center
@@ -141,14 +142,33 @@ private extension StatisticTopView {
     monthView.addConstraintsWithFormat("H:|\(str)|", views: daysViews)
     return monthView
   }
-
-  
 }
- extension StatisticTopView: UIPickerViewDelegate, UIPickerViewDataSource {
+// MARK: - render
+private extension StatisticTopView {
+
+  func setupViews() {
+    let daysView = makeWeekDays()
+    addSubview(daysView)
+    addSubview(monthPickerView)
+    [previouseMonth, nextMonth, nodateLabel].forEach {
+      addSubview($0)
+    }
+    addConstraintsWithFormat("H:|-10-[v0]-15-|", views: nodateLabel)
+
+    addConstraintsWithFormat("H:|[v0]|", views: daysView)
+    addConstraintsWithFormat("H:|[v0(>=130,<=260)]-(>=0)-[v1(40)]-[v2(40)]|", options: [.alignAllCenterY], views: monthPickerView, previouseMonth, nextMonth)
+    addConstraintsWithFormat("V:|[v0(60)]", views: monthPickerView)
+    addConstraintsWithFormat("V:|-(60)-[v0]|", views: daysView)
+    monthPickerView.reloadAllComponents()
+  }
+}
+
+// MARK: - UIPickerView
+extension StatisticTopView: UIPickerViewDelegate, UIPickerViewDataSource {
   func numberOfComponents(in pickerView: UIPickerView) -> Int {
     return 2
   }
-  
+
   func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
     if component == 0 {
       return model.dateModel.months.count
@@ -156,7 +176,7 @@ private extension StatisticTopView {
       return model.dateModel.years.count
     }
   }
-  
+
   func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
     if component == 0 {
       return model.dateModel.months[row].name
@@ -164,10 +184,10 @@ private extension StatisticTopView {
       return model.dateModel.years[row]
     }
   }
-   func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int,
-                   inComponent component: Int) {
-     model.dateModel.selected.month = row
-     showNext()
-   }
-   
+  func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int,
+                  inComponent component: Int) {
+    model.dateModel.selected.month = row
+    showNext()
+  }
+
 }

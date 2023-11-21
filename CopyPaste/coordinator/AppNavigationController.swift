@@ -1,6 +1,6 @@
 //
 //  AppNavigationController.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 29.09.2022.
 //
@@ -54,14 +54,16 @@ final class AppNavigationController: UINavigationController, ShowAlert {
   func next(viewController: UIViewController, animate: Bool = true) {
     configure()
     if animate {
-      navigationController?.view.layer.add(transitionAnimation, forKey: nil)
+      navigationController?.view.layer.add(transitionAnimation, forKey: "animationShow")
+    } else {
+      navigationController?.view.layer.removeAnimation(forKey: "animationShow")
     }
-    pushViewController(viewController, animated: false)
+    pushViewController(viewController, animated: animate)
     removeBackGesture()
   }
 
   func presentViewControllerModaly(
-    next: CustomPresentable,
+    next: any CustomPresentable,
     presentCompletion: (() -> Void)? = nil,
     interactiveDismissalType: InteractiveDismissalType = .standard(useSwipeForDispose: true)
   ) {
@@ -76,13 +78,13 @@ final class AppNavigationController: UINavigationController, ShowAlert {
     if let view = currentView as? DisposableViewController {
       view.removeReference()
     }
-    view.layer.add(transitionAnimation, forKey: nil)
+ //   view.layer.add(transitionAnimation, forKey: nil)
     return popToRootViewController(animated: false)
   }
 
   func present(
-    _ view: CustomPresentable,
-    completion: ((_ callBack: Any?) -> Void)? = nil
+    _ view: any CustomPresentable,
+    completion: ((_ callBack: CustomPresentableCopletion) -> Void)? = nil
   ) {
     let presentedView = view
     presentedView.completion = completion
@@ -98,9 +100,8 @@ final class AppNavigationController: UINavigationController, ShowAlert {
     next.modalPresentationStyle = style
     currentView?.present(next, animated: true, completion: presentCompletion)
   }
-  
-  
-  func dismissppUp(){
+
+  func dismissppUp() {
     currentView?.dismiss(animated: true)
   }
 
@@ -123,10 +124,21 @@ final class AppNavigationController: UINavigationController, ShowAlert {
     lineView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor).isActive = true
   }
 
-
   private func configure() {
-
+    navigationBar.isHidden = true
+   // addCustomBottomLine(color: AppColors.primary.color, height: 1.0)
+//    UIBarButtonItem.appearance().tintColor = AppColors.primary.color
+//    let attr: [NSAttributedString.Key: Any] = [
+//      .foregroundColor: AppColors.primary.color,
+//      .font: FontsEnum.base,
+//      .backgroundColor: UIColor.clear
+//    ]
+   // UINavigationBar.appearance().titleTextAttributes = attr
+//    (currentView as? UITabBarController)?.setTabBarHidden(true, animated: false)
   }
 
+  private func addCustomizedBackBtn() {
+    currentView?.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+    currentView?.navigationItem.backBarButtonItem = nil
+  }
 }
-

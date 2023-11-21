@@ -1,6 +1,6 @@
 //
 //  StatisticViewController.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 11.10.2022.
 //
@@ -10,149 +10,183 @@ import Combine
 import AudioToolbox
 final class LoginViewController: UIViewController {
   private var cancellables: Set<AnyCancellable> = []
-  var viewModel: LoginViewModel!
-  let keyboardListener = KeyboardListener()
-  var logoCenterConstraint: NSLayoutConstraint!
-  var logoTopConstraint: NSLayoutConstraint!
-  var logoContainer: UIView!
-  var logoPositiomY: Double = 0.0
-  var cancelTap: UITapGestureRecognizer!
-  var keyboardSize: Double = 0
-  var origilalHeight: CGFloat = 0
+  internal var viewModel: LoginViewModel!
+  private let keyboardListener = KeyboardListener()
+  private var logoCenterConstraint: NSLayoutConstraint!
+  private var logoTopConstraint: NSLayoutConstraint!
+  private var logoContainer: UIView!
+  private var logoPositiomY: Double = 0.0
+  private var cancelTap: UITapGestureRecognizer!
+  private var keyboardSize: Double = 0
+  private var origilalHeight: CGFloat = 0
 
-  lazy var loadSpiner: CustomSpinnerSimple = {
+  private lazy var loadSpiner: CustomSpinnerSimple = {
     let spinner = CustomSpinnerSimple(squareLength: 100)
     return spinner
   }()
 
-  lazy var logo: UIImageView! = {
+  private lazy var logo: UIImageView! = {
     let logoView = UIImageView(image: UIImage(named: "logo"))
     logoView.contentMode = .scaleAspectFit
     return logoView
   }()
 
-  lazy var errrorView: UILabel = {
+  private lazy var errrorView: UILabel = {
     let label = UILabel()
     label.alpha = 0
-    label.text = "Неверно введен код"
+    label.text = "Loc(Loc.Alert.wrong_code)"
     label.textColor = AppColors.white.color
     label.backgroundColor = AppColors.alertError.color
     return label
   }()
 
-  lazy var loginTextField: TextField = {
+  private lazy var loginTextField: TextField = {
     let settings = ControllSettings(colorType: .bordered, edgeInsets: 20)
-    settings.cornerRadius = 20
-    return ViewBuilder(settings: settings).makeTextField(placeholder: "Введите код", delegate: self)
+    settings.corner = .custom(20)
+    let loginTextField = ViewBuilder(settings: settings).makeTextField(placeholder: "Loc(Loc.Global.enter_code)", delegate: self)
+    loginTextField.returnKeyType = .send
+    return loginTextField
   }()
 
-  lazy var logInButton: CustomButton = {
+  private lazy var logInButton: CustomButton = {
+    var button = ViewBuilder(
+      title: Loc(Loc.Global.btn_goOn),
+      style: .icon(
+        SubviewSettings(margin: 15, width: 20, height: 20, view: loadSpiner, float: .right)
+      )
+    )
+    .setColors(colorType: .filled)
+    .makeButton()
 
-    let iconSettings = SubviewSettings(margin: 15, width: 20, height: 20, view: loadSpiner, float: .right)
-    var button = ViewBuilder(title: "Пролдолжить", style: .icon(iconSettings))
-      .setColors(colorType: .filled)
-      .makeButton()
     button.onClick = { [weak self] in
       self?.loadSpiner.startAnimation(delay: 0.04, replicates: 20)
       self?.viewModel.checkRegistration(code: self?.loginTextField.text ?? "")
       self?.logInButton.settings.subviews?.view?.alpha = 1
     }
-    button.controlState = .disabled
     return button
   }()
 
-  lazy var qrCodeButton: CustomButton = {
+  private lazy var qrCodeButton: CustomButton = {
     var button = ViewBuilder(
-      title: "Сканировать QR код",
+      title: "(Loc(Loc.Global.to_scan_qr_code))",
       style: .text
     ) .makeButton()
+    button.onClick = { [weak self] in
+      self?.viewModel.showQrCodeView()
+    }
     return button
   }()
-
-  var dirtyField = false
-  var code = ""
-  private var showWarning = false
-  private var keyboardDisplayed = false
-  private var keyFrameHeight: CGFloat = 0.0
 
   override func viewDidLoad() {
     super.viewDidLoad()
     addTargetsActions()
+    setViews()
+    NotificationCenter.default.removeObserver(self)
   }
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-
-    view.frame.inset(by: UIEdgeInsets(top: .zero, left: 5.0, bottom: 150.0, right: .zero))
-    view.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 400, right: 8)
-
-    initView()
     initBindings()
-  }
-  var show = true
-
-  func initBindings() {
-
-    viewModel.$qrCode.sink { [weak self] qrCode in
-      guard let self = self else { return }
-      self.loginTextField.text = qrCode
-      self.dirtyField = false
-      self.view.endEditing(true)
-    }.store(in: &cancellables)
-
-    viewModel.$registrationStatus.sink { [weak self] status in
-      guard let self = self else { return }
-      typealias RStatus = RegistrationStatusEnum
-      if let success = [RStatus.success: true, RStatus.failure: false][status] {
-        self.view.endEditing(true)
-        self.setValidation(isValid: success)
-
-        if success {
-          self.loginTextField.delegate = nil
-          self.startPresentation(show: false) {
-            self.viewModel.goToMain()
-          }
-        } else {
-          self.loadSpiner.stopAnimation()
-          self.loginTextField.isUserInteractionEnabled = true
-          self.logInButton.isEnabled = false
-        }
-      }
-    }.store(in: &cancellables)
-
-    qrCodeButton.onClick = { [weak self] in
-      self?.viewModel.showQrCodeView()
-    }
-  }
-  func setValidation(isValid: Bool) {
-    setColors(error: !isValid)
-    showWarning = !isValid
+    origilalHeight = self.view.frame.height
   }
 
-   @objc func dismissKeyboard() {
-     animateKeyboard(show: false)
-     view.endEditing(true)
-   }
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    keyboardListener.stopListeningToKeyboard()
+  }
+
+  @objc func dismissKeyboard() {
+    animateKeyboard(show: false)
+    view.endEditing(true)
+  }
 }
 
-extension LoginViewController {
-  func initView() {
+// MARK: - controll state
+private extension LoginViewController {
+
+  func showCode(code: String) {
+    loginTextField.text = code
+  }
+
+  func displaylogInResult(success: Bool) {
+    self.setValidation(isValid: success)
+    if success {
+      self.loginTextField.delegate = nil
+      self.startPresentation(show: false) {
+        self.viewModel.goToMain()
+      }
+    } else {
+      self.loadSpiner.stopAnimation()
+      self.loginTextField.isUserInteractionEnabled = true
+      self.logInButton.isEnabled = false
+    }
+  }
+  func initBindings() {
+    viewModel.$state.sink { [weak self] state in
+      switch state {
+        case .none: break
+        case .editing(let editing):
+          self?.view.endEditing(editing)
+        case .code(let code):
+          self?.showCode(code: code)
+        case .send: break
+        case .result(let success):
+          self?.displaylogInResult(success: success)
+      }
+    }.store(in: &cancellables)
+  }
+
+  func setValidation(isValid: Bool) {
+    logInButton.settings.subviews?.view?.alpha = 1
+    let state: ControllStates = isValid ? .active : .error
+    logInButton.controlState = state
+    loginTextField.controlState = state
+  }
+
+  func addTargetsActions() {
+    cancelTap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+    cancelTap?.cancelsTouchesInView = false
+    keyboardListener.startListeningToKeyboard()
+
+    keyboardListener.$keyboardHeihgt.sink { [weak self] cgrect in
+      guard let self = self else {return}
+      let show = cgrect.height != 0
+
+      if show {
+        self.view.addGestureRecognizer(self.cancelTap)
+        self.keyboardSize = cgrect.height
+      } else {
+        self.view.removeGestureRecognizer(self.cancelTap)
+      }
+      self.animateKeyboard(show: show)
+    }.store(in: &cancellables)
+  }
+
+  func animateKeyboard(show: Bool) {
+    let nextHeight = (show ? -1 : 1) * keyboardSize + CGFloat(Int(UIScreen.main.bounds.height))
+    UIView.animate(withDuration: 0.1, delay: 0) { [self] in
+      qrCodeButton.alpha = show ? 0 : 1
+    }
+    UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) { [self] in
+      view.frame.size.height = show ? nextHeight: origilalHeight
+      qrCodeButton.transform = CGAffineTransform(translationX: 0, y: show ? -50 : 0)
+      view.layoutIfNeeded()
+    }.startAnimation()
+  }
+}
+
+// MARK: - render
+private extension LoginViewController {
+  func setViews() {
     view.backgroundColor = AppColors.backgroundMain.color
+    view.frame.inset(by: UIEdgeInsets(top: .zero, left: 5.0, bottom: 150.0, right: .zero))
+    view.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 400, right: 8)
     addLoginFields()
     addlogo()
     startPresentation()
   }
 
-  private func setColors(error: Bool = false) {
-    logInButton.controlState = .disabled
-    logInButton.settings.subviews?.view?.alpha = 1
-    loginTextField.controlState = error ? .error : .active
-    if dirtyField && error == showWarning {
-      return
-    }
-  }
-
-  private func addlogo() {
+  func addlogo() {
     view.addSubview(logo)
     logoCenterConstraint = logo.centerYAnchor.constraint(equalTo: view.centerYAnchor)
     NSLayoutConstraint.activate([
@@ -175,11 +209,10 @@ extension LoginViewController {
       ])
       view.addConstraintsWithFormat("H:[v0]", options: .alignAllCenterX, views: $0)
     }
-
-    view.addSubview(loginTextField)
-    view.addConstraintsWithFormat("V:[v0(50)]-26-[v1(55)]",
-                                  options: .alignAllLeft,
-                                  views: loginTextField, qrCodeButton
+    view.addConstraintsWithFormat(
+      "V:[v0(50)]-26-[v1(55)]",
+      options: .alignAllLeft,
+      views: loginTextField, qrCodeButton
     )
     view.addConstraintsWithFormat("V:[v0(45)]-40-|", views: logInButton)
     NSLayoutConstraint.activate([
@@ -187,7 +220,6 @@ extension LoginViewController {
       logInButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
       errrorView.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor)
     ])
-
   }
 
   func initPresentation(start: CGFloat) {
@@ -199,67 +231,65 @@ extension LoginViewController {
   func startPresentation(show: Bool = true, completion: (() -> Void)? = nil) {
 
     initPresentation(start: show ? 0 : 1)
+
     if show {
       qrCodeButton.transform = CGAffineTransform(scaleX: 0.6, y: 0.6)
       logInButton.transform = CGAffineTransform(translationX: 0, y: 10)
     }
-    let animator = UIViewPropertyAnimator(duration: show ? 0.8 : 0.4, curve: .easeIn) { [self] in
-      let toAlpha = show ? 1.0 : 0
+    func fade(alpha: Double) {
+      logInButton.alpha = alpha
+      loginTextField.alpha = alpha
+      qrCodeButton.alpha = alpha
+    }
+
+    let animator = UIViewPropertyAnimator(duration: show ? 0.8 : 1.2, curve: .easeIn) { [self] in
       let deltaX: CGFloat = show ? 0 : -10
       logInButton.transform = CGAffineTransform(translationX: deltaX, y: 0)
-      logInButton.alpha = toAlpha
-      loginTextField.alpha = toAlpha
-      qrCodeButton.alpha = toAlpha
-
-      let sale = show ? 1 : 0.6
+      fade(alpha: show ? 1.0 : 0)
+      let sale = show ? 1 : 0.85
       loginTextField.transform = CGAffineTransform(scaleX: sale, y: sale)
       qrCodeButton.transform = CGAffineTransform(scaleX: sale, y: sale)
-     }
+    }
 
-    let animatorLogo = UIViewPropertyAnimator(duration: show ? 1.0 : 3, curve: .easeOut) { [self] in
+    let animatorLogo = UIViewPropertyAnimator(duration: show ? 1.0 : 3.5, curve: .easeOut) { [self] in
       if show {
         logoCenterConstraint.isActive = false
         logoTopConstraint = logo.centerYAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 100)
         logoTopConstraint.isActive = true
-        UIView.animate(withDuration: 0.5) {  [self] in
-          view.layoutIfNeeded()
-        }
-        logo.transform = CGAffineTransform(scaleX: 0.8, y: 0.8) // .translatedBy(x: 0, y: logoPositiomY)
+        logo.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
         logo.alpha = 1
       } else {
-        logo.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
-        logo.alpha = 0
+        logo.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+        logo.alpha = 0.2
+        logoTopConstraint.constant = 300
+      }
+      UIView.animate(withDuration: 0.5) {  [self] in
+        view.layoutIfNeeded()
       }
     }
     if let completion = completion {
-      animatorLogo.addCompletion { position in
+      animatorLogo.addCompletion { [weak self] position in
+        fade(alpha: 0)
         if position == .end {
+          self?.view.alpha = 0
           completion()
         }
       }
     }
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {
+    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(show ? 1 : 0), execute: {
       animatorLogo.startAnimation()
       animator.startAnimation()
     })
   }
-
-  override func viewDidDisappear(_ animated: Bool) {
-    super.viewDidDisappear(animated)
-    keyboardListener.stopListeningToKeyboard()
-  }
 }
 
+// MARK: - UITextFieldDelegate
 extension LoginViewController: UITextFieldDelegate {
 
-  func textFieldDidEndEditing(_ textField: UITextField) {
-    self.code = loginTextField.text ?? ""
-  }
   func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-    view.endEditing(true)
-    setValidation(isValid: true)
-    loginTextField.resignFirstResponder()
+    viewModel.state = .send(textField.text ?? "")
+    viewModel.state = .editing(false)
     return true
   }
   func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -268,46 +298,12 @@ extension LoginViewController: UITextFieldDelegate {
   func textField(_ textField: UITextField,
                  shouldChangeCharactersIn range: NSRange,
                  replacementString string: String) -> Bool {
-    loginTextField.becomeFirstResponder()
+    textField.becomeFirstResponder()
+    setValidation(isValid: true)
     return true
   }
   func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
     setValidation(isValid: true)
     return true
-  }
-}
-
-private extension LoginViewController {
-  func addTargetsActions() {
-    cancelTap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-    cancelTap?.cancelsTouchesInView = false
-    keyboardListener.startListeningToKeyboard()
-
-    keyboardListener.$keyboardHeihgt.sink { [weak self] cgrect in
-      guard let self = self else {return}
-      let show = cgrect.height != 0
-
-      if show {
-        self.view.addGestureRecognizer(self.cancelTap)
-        self.origilalHeight = self.view.frame.height
-        self.keyboardSize = cgrect.height
-      } else {
-        self.view.removeGestureRecognizer(self.cancelTap)
-      }
-      self.animateKeyboard(show: show)
-    }.store(in: &cancellables)
-  }
-
-  func animateKeyboard(show: Bool) {
-    self.keyboardDisplayed = show
-    let nextHeight = (show ? -1 : 1) * keyboardSize + CGFloat(Int(UIScreen.main.bounds.height))
-    UIView.animate(withDuration: 0.1, delay: 0) { [self] in
-      qrCodeButton.alpha = show ? 0 : 1
-    }
-    UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) { [self] in
-      view.frame.size.height = show ? nextHeight: origilalHeight
-      qrCodeButton.transform = CGAffineTransform(translationX: 0, y: show ? -50 : 0)
-      view.layoutIfNeeded()
-    }.startAnimation()
   }
 }

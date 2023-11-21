@@ -1,6 +1,6 @@
 //
 //  CameraViewModel.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 13.10.2022.
 //

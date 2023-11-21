@@ -1,22 +1,19 @@
 import UIKit
 
+typealias AnyCustomPresentable = (any CustomPresentable)
 protocol CustomPresentable: UIViewController {
-    var transitionManager: UIViewControllerTransitioningDelegate? { get set }
-    var completion: ((_ callBack: Any?) -> Void)? { get set }
-    var dismissalHandlingScrollView: UIScrollView? { get }
-    func updatePresentationLayout(animated: Bool) 
+  associatedtype T: BaseVM
+  var transitionManager: UIViewControllerTransitioningDelegate? { get set }
+  var completion: ((_ callBack: CustomPresentableCopletion) -> Void)? { get set }
+  var dismissalHandlingScrollView: UIScrollView? { get }
+  var viewModel: T! { get set }
+}
+
+
+enum CustomPresentableCopletion {
+  case cancel, emit(callBack: Any?)
 }
 
 extension CustomPresentable {
-    var dismissalHandlingScrollView: UIScrollView? { nil }
-    func updatePresentationLayout(animated: Bool = false) {
-        presentationController?.containerView?.setNeedsLayout()
-        if animated {
-            UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: .allowUserInteraction, animations: {
-                self.presentationController?.containerView?.layoutIfNeeded()
-            }, completion: nil)
-        } else {
-            presentationController?.containerView?.layoutIfNeeded()
-        }
-    }
+  var dismissalHandlingScrollView: UIScrollView? { nil }
 }

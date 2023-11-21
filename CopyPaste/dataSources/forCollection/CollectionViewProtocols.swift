@@ -112,12 +112,6 @@ extension ModernSectionLayout {
 }
 
 protocol SectionLayout: SectionProtocol {
-  func mapCell(
-    _ model: Any?,
-    _ collectionView: UICollectionView,
-    _ forIndexPath: IndexPath, layoutIndex: Int?
-  ) -> UICollectionViewCell
-
   func mapCell2<T: ConfigureCellProtocol>(
     _ model: T.CellModel,
     _ collectionView: UICollectionView,

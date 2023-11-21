@@ -1,6 +1,6 @@
 //
 //  TopCollectionViewBar.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 06.04.2023.
 //
@@ -18,7 +18,10 @@ extension ListView {
     self.backgroundColor = AppColors.backgroundMain.color
   }
 
-  func registertSubViews(cells: UICollectionReusableView.Type..., subviews: (String, UICollectionReusableView.Type)...) {
+  func registertSubViews(
+    cells: UICollectionReusableView.Type...,
+    subviews: (String, UICollectionReusableView.Type)...
+  ) {
     cells.forEach {
       self.register($0.self, forCellWithReuseIdentifier: $0.identifier)
     }
@@ -43,6 +46,5 @@ extension ListView {
       collectionViewLayout = layout
     }
     collectionViewLayout.collectionView?.setNeedsLayout()
-    //collectionViewLayout.invalidateLayout()
   }
 }

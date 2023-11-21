@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 enum FontNamesEnum: String {
-  case system = "System"
+  case base = "System"
 }
 
 enum FontsStyle: String {
@@ -33,7 +33,7 @@ enum FontsEnum {
     private var options: (name: String, style: String) {
         switch self {
         case .base:
-            return (FontNamesEnum.system.rawValue, FontsStyle.normal.rawValue)
+            return (FontNamesEnum.base.rawValue, FontsStyle.normal.rawValue)
         case .custom(name: let name, let style):
             return (name.rawValue, style.rawValue)
         }

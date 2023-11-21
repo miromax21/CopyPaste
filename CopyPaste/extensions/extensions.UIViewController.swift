@@ -43,7 +43,7 @@ extension UIViewController: UIViewControllerTransitioningDelegate {
   }
   
   func present(
-    _ viewController: CustomPresentable,
+    _ viewController: any CustomPresentable,
     interactiveDismissalType: InteractiveDismissalType,
     completion: (() -> Void)? = nil
   ) {

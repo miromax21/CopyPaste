@@ -1,6 +1,6 @@
 //
 //  CustomButton.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 03.10.2022.
 //
@@ -9,14 +9,14 @@ import UIKit
 
 class CustomButton: UIButton {
 
-  private var borderLine: CAShapeLayer?
+  private var customLayer: CAShapeLayer?
 
   var settings: ControllSettings!
   var metaData: [String: Any]?
   var onClick: (() -> Void)?
   var controlState: ControllStates! {
     didSet {
-      self.isEnabled = controlState == .disabled
+      self.isEnabled = controlState == .active
       setColors()
     }
   }
@@ -46,15 +46,10 @@ class CustomButton: UIButton {
     configure()
     buildUI()
   }
-
-  func setOnlyimage(targetView: UIView, settings: ControllSettings) {
-    contentMode = .center
-    targetView.contentMode = .center
-    titleLabel?.removeFromSuperview()
-    let verticalPadding = settings.edgeInsets?.vertical ?? 0
-    let horizontalPadding = settings.edgeInsets?.horizontal ?? 0
-    addConstraintsWithFormat("H:|-(p)-[v0]-(p)-|", metrics: ["p": horizontalPadding], views: targetView)
-    addConstraintsWithFormat("V:|-(p)-[v0]-(p)-|", metrics: ["p": verticalPadding], views: targetView)
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    checkMakeBorderLine()
+    setColors()
   }
 
   func configure() {
@@ -71,9 +66,8 @@ class CustomButton: UIButton {
     titleLabel?.clipsToBounds = true
     titleLabel?.adjustsFontSizeToFitWidth = false
     titleLabel?.lineBreakMode = .byTruncatingTail
-    titleLabel?.clipsToBounds = true
-    layer.cornerRadius = settings.cornerRadius
-    if let (vei, hei) = settings.edgeInsets {
+    layer.cornerRadius = settings.corner.radius
+    if let (hei, vei) = settings.edgeInsets {
       contentEdgeInsets = UIEdgeInsets(top: vei, left: hei, bottom: vei, right: hei)
     }
   }
@@ -91,7 +85,7 @@ class CustomButton: UIButton {
     guard let customSubview = customSubview else {
       return
     }
-    if let degree = settings.subviewAngle  {
+    if let degree = params.subviewAngle {
       customSubview.transform = CGAffineTransform.identity.rotated(by: Double(degree) * .pi / 180)
     }
 
@@ -132,6 +126,7 @@ class CustomButton: UIButton {
           options: .alignAllCenterY,
           views: [customSubview, titleLabel]
         )
+        self.setContentHuggingPriority(.defaultLow, for: .horizontal)
       }
     }
   }
@@ -164,8 +159,6 @@ class CustomButton: UIButton {
 
 extension CustomButton {
   private func setColors() {
-    checkMakeBorderLine()
-
     guard  let colorType = settings.colorType else {
       fatalError("there isn't colorType in \(self)")
     }
@@ -175,8 +168,10 @@ extension CustomButton {
       setTitleColor(colors.tint, for: .disabled)
 
       switch colorType {
-      case .bordered: layer.borderColor = colors.target?.cgColor
-      case .text: borderLine?.backgroundColor = UIColor.clear.cgColor
+        case .bordered:
+          customLayer?.fillColor = colors.target?.cgColor
+        //  layer.borderColor = colors.target?.cgColor
+      case .text: customLayer?.backgroundColor = UIColor.clear.cgColor
       default:
           backgroundColor = colors.target
           tintColor = colors.tint
@@ -185,20 +180,32 @@ extension CustomButton {
   }
 
   private func checkMakeBorderLine() {
-    if settings.colorType != .text, borderLine != nil {
+    if customLayer != nil {
       return
     }
-    let shapeLayer = CAShapeLayer()
-    let path = UIBezierPath()
-    path.move(to: CGPoint(x: 0, y: bounds.height))
-    path.addLine(to: CGPoint(x: bounds.width, y: bounds.height))
-    shapeLayer.path = path.cgPath
-    shapeLayer.strokeColor = AppColors.text.color.cgColor
-    shapeLayer.lineWidth = 1
-    borderLine = shapeLayer
+    let textHeight = self.titleLabel!.intrinsicContentSize.height
+    let addborder = [.bordered].contains(settings.colorType)
+    if !addborder {
+      return
+    }
+    let layer = CAShapeLayer()
+    let rect = CGRect(x: 0, y: textHeight, width: bounds.width, height: 1)
+    layer.path = UIBezierPath(rect: rect).cgPath
+    titleLabel?.layer.addSublayer(layer)
+    customLayer = layer
   }
 
   func setFont(font: UIFont) {
     self.titleLabel?.font = font
+  }
+  
+  func setOnlyimage(targetView: UIView, settings: ControllSettings) {
+    contentMode =  settings.subviews?.contentMode ?? .center
+    targetView.contentMode = settings.subviews?.contentMode ?? .center
+    titleLabel?.removeFromSuperview()
+    let verticalPadding = settings.edgeInsets?.vertical ?? 0
+    let horizontalPadding = settings.edgeInsets?.horizontal ?? 0
+    addConstraintsWithFormat("H:|-(p)-[v0]-(p)-|", metrics: ["p": horizontalPadding], views: targetView)
+    addConstraintsWithFormat("V:|-(p)-[v0]-(p)-|", metrics: ["p": verticalPadding], views: targetView)
   }
 }

@@ -1,8 +1,8 @@
 import UIKit
 
-class StandardInteractionController: NSObject, InteractionControlling {
+final class StandardInteractionController: NSObject, InteractionControlling {
   var interactionInProgress = false
-  private weak var viewController: CustomPresentable!
+  private weak var viewController: (any CustomPresentable)!
   private weak var transitionContext: UIViewControllerContextTransitioning?
 
   private var interactionDistance: CGFloat = 0
@@ -11,7 +11,7 @@ class StandardInteractionController: NSObject, InteractionControlling {
   private var cancellationAnimator: UIViewPropertyAnimator?
 
   // MARK: - Setup
-  init(viewController: CustomPresentable, useSwipe: Bool = true) {
+  init(viewController: any CustomPresentable, useSwipe: Bool = true) {
     self.viewController = viewController
     super.init()
     if useSwipe {
@@ -140,7 +140,7 @@ class StandardInteractionController: NSObject, InteractionControlling {
     guard
       let transitionContext = transitionContext,
       let presentedFrame = presentedFrame,
-      let presentedViewController = transitionContext.viewController(forKey: .from) as? CustomPresentable
+      let presentedViewController = transitionContext.viewController(forKey: .from) as? (any CustomPresentable)
     else { return }
 
     let dismissedFrame = CGRect(

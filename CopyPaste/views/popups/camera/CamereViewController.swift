@@ -1,6 +1,6 @@
 //
 //  CamereViewController.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 13.10.2022.
 //
@@ -9,29 +9,37 @@ import UIKit
 import AVFoundation
 import CoreGraphics
 final class CamereViewController: UIViewController, CustomPresentable, AVCaptureMetadataOutputObjectsDelegate {
+  typealias T = CameraViewModel
+  var viewModel: T!
+  var completion: ((CustomPresentableCopletion) -> Void)?
   var transitionManager: UIViewControllerTransitioningDelegate?
-  var completion: ((Any?) -> Void)?
-  var viewModel: CameraViewModel!
-  var qrcode: String? {
+
+  private var previewLayer: AVCaptureVideoPreviewLayer! {
+    didSet {
+      previewLayer.frame = view.layer.bounds
+      previewLayer.videoGravity = .resizeAspectFill
+      view.layer.addSublayer(previewLayer)
+    }
+  }
+  private var imageview: UIImageView!
+
+  private var qrcode: String? {
     didSet {
       if qrcode != oldValue {
         send(next: qrcode)
       }
     }
   }
-  var previewLayer: AVCaptureVideoPreviewLayer!
 
-  var imageview: UIImageView!
   override func loadView() {
     super.loadView()
     setupVideoRecording()
+    viewModel.toogleVideoRecording(run: true)
   }
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    setupVideoRecording()
-    initView()
-    view.backgroundColor = AppColors.black.color
+    setViews()
   }
 
   override var prefersStatusBarHidden: Bool {
@@ -44,8 +52,8 @@ final class CamereViewController: UIViewController, CustomPresentable, AVCapture
 
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    viewModel.toogleVideoRecording(run: true)
-    setUpViews()
+    setViewConstraints()
+    setViewsCustomisations()
   }
 
   override func viewWillDisappear(_ animated: Bool) {
@@ -62,56 +70,61 @@ final class CamereViewController: UIViewController, CustomPresentable, AVCapture
       let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
       object.type == AVMetadataObject.ObjectType.qr
     else { return }
-    let barCodeObject = previewLayer?.transformedMetadataObject(for: object)
 
-    if let bounds = barCodeObject?.bounds {
-      UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) { [weak self] in
-        self?.imageview.frame = bounds
-      } completion: {  [weak self] _ in
-        self?.qrcode = object.stringValue
-      }
-    } else {
+    guard let barCodeObject = previewLayer?.transformedMetadataObject(for: object) else {
       qrcode = object.stringValue
+      return
+    }
+    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
+      self.imageview.frame = barCodeObject.bounds
+    } completion: { _ in
+      self.qrcode = object.stringValue
     }
   }
 
   func send(next: String?) {
     viewModel.toogleVideoRecording(run: false)
-    completion?(next)
+    completion?(.emit(callBack: next))
     self.dismiss(animated: true)
   }
 }
-extension CamereViewController {
-  private func setupVideoRecording() {
+
+// MARK: - controll state
+private extension CamereViewController {
+  func setupVideoRecording() {
     let metadataOutput = AVCaptureMetadataOutput()
-    if viewModel.trySession(with: metadataOutput) {
-      metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-      metadataOutput.metadataObjectTypes = [.qr, .ean13, .pdf417]
-      previewLayer = AVCaptureVideoPreviewLayer(session: viewModel.captureSession)
-      previewLayer.frame = view.layer.bounds
-      previewLayer.videoGravity = .resizeAspectFill
-      view.layer.addSublayer(previewLayer)
-      viewModel.toogleVideoRecording(run: true)
-    } else {
+    guard viewModel.trySession(with: metadataOutput) else {
       failed()
+      return
     }
-  }
+    metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+    metadataOutput.metadataObjectTypes = [.qr, .ean13, .pdf417]
+    previewLayer = AVCaptureVideoPreviewLayer(session: viewModel.captureSession)
 
-  private func initView() {
+  }
+}
+// MARK: - render
+private extension CamereViewController {
+
+  func setViews() {
     imageview = UIImageView()
-    imageview.image = UIImage(named: "qrCodeBorder")
     view.addSubview(imageview)
-    view.layer.cornerRadius = 8
-    view.clipsToBounds = true
   }
 
-  private func setUpViews() {
+  func setViewConstraints() {
     let bounds = view.bounds
     let size: CGFloat = 200
     imageview.frame = CGRect(x: (bounds.width - size) / 2, y: (bounds.height - size) / 2, width: size, height: size)
   }
 
-  private func failed() {
+  func setViewsCustomisations() {
+    view.backgroundColor = AppColors.black.color
+    imageview.image = UIImage(named: "qrCodeBorder")
+    view.layer.cornerRadius = 8
+    view.clipsToBounds = true
+  }
+
+  func failed() {
     let alert = UIAlertController(
       title: Loc(Loc.Alert.camera_title),
       message: Loc(Loc.Alert.camera_message),
@@ -120,7 +133,5 @@ extension CamereViewController {
     alert.addAction(UIAlertAction(title: "OK", style: .default))
     viewModel.captureSession.stopRunning()
     present(alert, animated: true)
-
   }
-
 }

@@ -4,24 +4,33 @@ import Foundation
 
 protocol Coordinator {
   func start()
+  func cancel()
 }
 
 class BaseCoordinator: NSObject, Coordinator {
   var type: AppCoordinatorEnum!
-  unowned var appCoordinator: AppCoordinator!
-  unowned var appNavigationController: AppNavigationController!
-  convenience init(appNavigationController: AppNavigationController) {
-    self.init()
-    self.appNavigationController = appNavigationController
+  weak var appCoordinator: AppCoordinator!
+  weak var app: App? {
+    return appCoordinator?.app
+  }
+
+  weak var currentPopUp: UIViewController? {
+    return appCoordinator.navigationController.currentView
   }
   func start() {}
+  func cancel() {}
 }
 
-class PresentableCoordinator: BaseCoordinator {
-  var view: PresentableViewController!
+final class PresentableCoordinator: BaseCoordinator {
+  var view: (any CustomPresentable)!
 }
 
-class BaseViewModel {
+
+protocol BaseVM {
+  var coordinator: BaseCoordinator! { get }
+}
+
+class BaseViewModel: BaseVM {
   var coordinator: BaseCoordinator!
   init(coordinator: BaseCoordinator) {
     self.coordinator = coordinator

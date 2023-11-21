@@ -1,60 +1,15 @@
 //
 //  ButtonBuilder.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 31.10.2022.
 //
 
 import UIKit
-
-enum ButtonStyleEnum {
-  case bordered,
-       filled,
-       text,
-       icon(_ : SubviewSettings? = nil, name: IconEnum? = nil, settings: ControllSettings? = nil)
-
-  var settings: ControllSettings {
-    switch self {
-    case .bordered: return bordered()
-    case .filled: return filled()
-    case .icon(let subviewSettings, let name, let settings):
-      return subview(subviewSettings: subviewSettings, name: name, settings: settings)
-    case .text: return text()
-    }
-  }
-  private func bordered() -> ControllSettings {
-    let settings = ControllSettings()
-    settings.colorType = .bordered
-    return settings
-  }
-  private func filled() -> ControllSettings {
-    let settings = ControllSettings()
-    settings.colorType = .filled
-    return settings
-  }
-
-  func subview(
-    subviewSettings: SubviewSettings? = nil,
-    name: IconEnum? = nil,
-    settings: ControllSettings? = nil
-  ) -> ControllSettings {
-    let buttonSettings = settings ?? ControllSettings()
-    var subviewSettings = subviewSettings ?? SubviewSettings()
-    if subviewSettings.iconImage == nil {
-      subviewSettings.iconImage = name?.icon
-    }
-    buttonSettings.addSubview(subviewsSettings: .withSubview(subviewSettings))
-    buttonSettings.colorType = .icon
-    return buttonSettings
-  }
-
-  private func text() -> ControllSettings {
-    let settings = ControllSettings()
-    settings.colorType = .text
-    return settings
-  }
+enum ControllStates {
+  case active, disabled, error
 }
-
+// MARK: ControllSettings -
 final class ControllSettings {
   enum SubviewsSettings {
     case none, withSubview(SubviewSettings?)
@@ -66,20 +21,24 @@ final class ControllSettings {
     }
   }
   enum CornerEnum {
-    case none, base
+    case none, custom(CGFloat)
+    var radius: CGFloat {
+      switch self {
+        case .custom(let corener): return corener
+        default: return 0.0
+      }
+    }
   }
   private(set) var useBase: Bool = true
-
-  var cornerRadius: CGFloat = 10.0
-  var colorType: ColorType!
+  var colorType: ColorType?
   var title: String?
   var customize: ((_ button: CustomButton) -> Void)?
   var subviews: SubviewSettings?
-  var edgeInsets: (vertical: CGFloat, horizontal: CGFloat)?
+  var edgeInsets: (horizontal: CGFloat, vertical: CGFloat)?
   var fontSize: CGFloat = 16
-  var corner: CornerEnum = .base
+  var corner: CornerEnum = .custom(15)
   var useBounds: Bool = false
-  var subviewAngle: Int? = nil
+
   init(colorType: ColorType = .filled, edgeInsets: CGFloat? = 3) {
     self.colorType = colorType
     if let edgeInsets = edgeInsets {
@@ -97,7 +56,10 @@ final class ControllSettings {
   }
 }
 
+// MARK: SubviewSettings -
+
 struct SubviewSettings {
+  var contentMode: UIView.ContentMode = .center
   var hideTextRatio: Double = 1
   var margin: Int = 3
   var width: Int = 45
@@ -105,7 +67,7 @@ struct SubviewSettings {
   var iconImage: UIImage?
   var iconImageSelected: UIImage?
   var view: UIView?
-
+  var subviewAngle: Int?
   var float: SubviewFloating = .left
   func horizontslConstraint(buttonPadding pudding: CGFloat! = 0) -> String {
     var constraint = ""
@@ -121,6 +83,8 @@ struct SubviewSettings {
     case left, right, onlyimage
   }
 }
+
+// MARK: UIButtonColor -
 
 struct UIButtonColor {
   var color: AppColors?

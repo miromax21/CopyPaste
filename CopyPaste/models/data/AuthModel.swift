@@ -14,7 +14,8 @@ struct AuthModel: EncodableJson, Codable {
   var code: String = ""
   var deviceOwner: String?
 }
-protocol EncodableJson: Encodable {
+
+public protocol EncodableJson: Encodable {
   var asString: String? { get }
 }
 
@@ -22,10 +23,17 @@ extension EncodableJson {
   var asString: String? {
     let jsonEncoder = JSONEncoder()
     jsonEncoder.outputFormatting = .withoutEscapingSlashes
-    
+
     do {
       let jsonData = try jsonEncoder.encode(self)
       return String(data: jsonData, encoding: .utf8)
     } catch { return nil }
   }
+}
+
+protocol Identifiable {
+  var id: String {get set}
+}
+protocol UpdateSendable {
+  var message: String {get}
 }

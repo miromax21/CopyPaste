@@ -1,6 +1,6 @@
 //
 //  Field.swift
-//  CopyPaste
+//  CompanionApp
 //
 //  Created by Maksim Mironov on 26.10.2022.
 //
@@ -37,26 +37,15 @@ final class TextField: UITextField {
     return false
   }
   func configure(settings: ControllSettings, state: ControllStates? = nil) {
-    let cornerRadius = settings.corner == .none ? 0 : settings.cornerRadius
     self.colorType = settings.colorType
-    baseConfiguraton(cornerRadius: cornerRadius, padding: settings.edgeInsets?.vertical)
+    baseConfiguraton(cornerRadius: settings.corner.radius, padding: settings.edgeInsets?.vertical)
     controlState = state ?? .active
   }
-
-  private func baseConfiguraton(cornerRadius: CGFloat = 10, padding: CGFloat? = nil) {
-    layer.cornerRadius = cornerRadius
-    layer.borderWidth = 1.0
-    layer.masksToBounds = true
-    let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: padding ?? 20, height: 10))
-    rightView = paddingView
-    leftView = paddingView
-    rightViewMode = .always
-    leftViewMode = .always
-    layer.add(colorAnimation, forKey: colorAnimation.keyPath)
-  }
 }
-extension TextField {
-  private func setColors() {
+
+// MARK: - extension TextField
+private extension TextField {
+   func setColors() {
     checkMakeBorderLine()
     guard let colors = colorType?.getColors(disabled: controlState == .disabled, error: controlState == .error )else {
       fatalError("there isn't colorType in \(self)")
@@ -70,7 +59,7 @@ extension TextField {
     colorAnimation.duration = 0.5
   }
 
-  private func checkMakeBorderLine() {
+  func checkMakeBorderLine() {
     if colorType != .text, borderLine != nil {
       return
     }
@@ -83,8 +72,16 @@ extension TextField {
     shapeLayer.lineWidth = 1
     borderLine = shapeLayer
   }
-}
 
-enum ControllStates {
-  case active, disabled, error
+  private func baseConfiguraton(cornerRadius: CGFloat = 10, padding: CGFloat? = nil) {
+    layer.cornerRadius = cornerRadius
+    layer.borderWidth = 1.0
+    layer.masksToBounds = true
+    let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: padding ?? 20, height: 10))
+    rightView = paddingView
+    leftView = paddingView
+    rightViewMode = .always
+    leftViewMode = .always
+    layer.add(colorAnimation, forKey: colorAnimation.keyPath)
+  }
 }

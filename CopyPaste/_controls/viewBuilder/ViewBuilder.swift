@@ -8,13 +8,13 @@
 import UIKit
 
 final class ViewBuilder {
-  private var settings: ControllSettings!
+  var settings: ControllSettings!
 
   private func setSettings(settings: ControllSettings) {
     self.settings = settings
   }
 
-  init(icon: ButtonStyleEnum) {
+  init(icon: ControllStyleEnum) {
     setSettings(settings: icon.settings)
   }
   init(title: String? = nil, settings: ControllSettings) {
@@ -22,7 +22,7 @@ final class ViewBuilder {
     setSettings(settings: settings)
   }
 
-  init(title: String? = nil, style: ButtonStyleEnum! = .filled) {
+  init(title: String? = nil, style: ControllStyleEnum! = .filled) {
     let settings = style.settings
     if let title = title {
       settings.title = title
@@ -46,7 +46,7 @@ final class ViewBuilder {
     let customisation = customisation ?? Customisation(fontSize: settings.fontSize)
     if let titleLabel = button.titleLabel {
       var titleAttributes = customisation.attributes
-      titleAttributes[.font] = FontsEnum.custom(name: .system, style: .bold).getFont(size: customisation.fontSize)
+      titleAttributes[.font] = FontsEnum.custom(name: .base, style: .bold).getFont(size: customisation.fontSize)
       let attributedString = NSMutableAttributedString(string: titleLabel.text ?? "", attributes: titleAttributes)
       titleLabel.attributedText = attributedString
     }
